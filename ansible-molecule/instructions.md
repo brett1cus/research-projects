@@ -44,7 +44,17 @@ simple_ansible_role
     └── main.yml
 ```
 
-So, a very straightforward Ansible role that copies a text file to /tmp.
+So, a very straightforward Ansible role that copies a text file to /tmp. Here is what the main.yml in tasks looks like:
+
+```
+- name: Copy a file with some cool dialogue in it to /tmp
+  copy:
+    src: witcher_lines.txt
+    dest: /tmp
+    owner: geralt
+    group: geralt
+    mode: 0775
+```
 
   5. Now we can actually start using Molecule! There are two methods of invoking Molecule, depending on your situation. If you need to create a brand-new role, you would let Molecule take care of the directory structure creation (it uses Ansible Galaxy under the hood), so something like `molecule init role -r my-new-role`. However, as we want to retrofit Molecule into an already existing Ansible role, we would do the following:
 
@@ -87,7 +97,7 @@ By initialising Molecule, we now have a suite of tests available, albeit with a 
 
   tests is the tests directory created because Molecule uses TestInfra as the default Verifier. This allows you to write specific tests against the state of the container after your role has finished executing. Other verifier tools are available.
 
-  6. Now we can instantiate a Docker container to run the Ansible role against. However, before we do, we will need to add a line into the Dockerfile.j2 because the role sets the owner of the copied file to someone that doesn't exist in the container yet! Add the following line into Dockerfile.j2:
+  6. Before we begin spinning up containers, we will need to add a line into the Dockerfile.j2 because the simple_ansible_role sets the owner of the copied file to someone that doesn't exist in the container yet! We can simply add the following line into Dockerfile.j2:
 
 ```
 RUN useradd geralt -s /bin/bash -u 55555
@@ -414,7 +424,7 @@ collected 2 items
 Verifier completed successfully.
 ```
 
-Much better :)
+Much better :) Like the Linting, if you so choose, the entire end to end testing (invoked by `molecule test`) can fail if one unit test fails.
 
 
 ## Conclusion
