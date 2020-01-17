@@ -46,7 +46,7 @@ simple_ansible_role
 
 So, a very straightforward Ansible role that copies a text file to /tmp.
 
-  5. Now we can actually start using Molecule! There are two methods of invoking Molecule, depending on your situation. If you need to create a brand-new role, you would let Molecule take care of the directory structure creation (it uses Ansible Galaxy under the hood), so something like `molecule init role -r my-new-role`. However, as we wan't to retrofit Molecule into an already existing Ansible role, we would do the following:
+  5. Now we can actually start using Molecule! There are two methods of invoking Molecule, depending on your situation. If you need to create a brand-new role, you would let Molecule take care of the directory structure creation (it uses Ansible Galaxy under the hood), so something like `molecule init role -r my-new-role`. However, as we want to retrofit Molecule into an already existing Ansible role, we would do the following:
 
 ```
 (molecule) cd roles/simple_ansible_role
