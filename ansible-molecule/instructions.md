@@ -10,7 +10,7 @@ Any work done should be performed on a test server of some description, most lik
 Linux. For the purpose of this exercise, we will be using a Centos 7.7 server. 
 
 You should have internet access, have the ability to pull down packages using pip and Docker images from both
-[dockerhub](https://hub.docker.com/) and [quay.io](https://quay.io).
+[dockerhub](https://hub.docker.com/) and [quay.io](https://quay.io). This guide assumes that Docker is already installed on the test server.
 
 ## Proof of Concept instructions
 By following the steps outlined below, you should be able to complete an end to end test of a simple Ansible role. 
@@ -26,7 +26,7 @@ $ . molecule/bin/activate
 ```
 	
 
-  3. We can now actually install the Molecule dependencies using pip. Notice that the second pip install actually installs Docker into the virtualenv; for now, we will be using Docker to test our Ansible code:
+  3. We can now actually install the Molecule dependencies using pip. Notice that the second pip install actually installs the additional Docker libraries into the virtualenv; for now, we will be using Docker to test our Ansible code:
 
 ```
 (molecule) pip install molecule
