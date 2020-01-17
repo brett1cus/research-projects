@@ -93,4 +93,93 @@ By initialising Molecule, we now have a suite of tests available, albeit with a 
 RUN useradd geralt -s /bin/bash -u 55555
 ```
 
+  7. Run `molecule create` and you should hopefully see the following:
+
+```
+(molecule) [root@testserver simple_ansible_role]# molecule create
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+--> Test matrix
+    
+└── default
+    ├── dependency
+    ├── create
+    └── prepare
+    
+--> Scenario: 'default'
+--> Action: 'dependency'
+Skipping, missing the requirements file.
+--> Scenario: 'default'
+--> Action: 'create'
+--> Sanity checks: 'docker'
+    
+    PLAY [Create] ******************************************************************
+    
+    TASK [Log into a Docker registry] **********************************************
+    skipping: [localhost] => (item=None) 
+    
+    TASK [Create Dockerfiles from image names] *************************************
+    changed: [localhost] => (item=None)
+    changed: [localhost]
+    
+    TASK [Determine which docker image info module to use] *************************
+    ok: [localhost]
+    
+    TASK [Discover local Docker images] ********************************************
+    ok: [localhost] => (item=None)
+    ok: [localhost]
+    
+    TASK [Build an Ansible compatible image (new)] *********************************
+    changed: [localhost] => (item=molecule_local/centos:7)
+    
+    TASK [Build an Ansible compatible image (old)] *********************************
+    skipping: [localhost] => (item=molecule_local/centos:7) 
+    
+    TASK [Create docker network(s)] ************************************************
+    
+    TASK [Determine the CMD directives] ********************************************
+    ok: [localhost] => (item=None)
+    ok: [localhost]
+    
+    TASK [Create molecule instance(s)] *********************************************
+    changed: [localhost] => (item=instance)
+    
+    TASK [Wait for instance(s) creation to complete] *******************************
+    changed: [localhost] => (item=None)
+    changed: [localhost]
+    
+    PLAY RECAP *********************************************************************
+    localhost                  : ok=7    changed=4    unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+    
+--> Scenario: 'default'
+--> Action: 'prepare'
+Skipping, prepare playbook not configured.
+```
+
+But how does Molecule know what Docker image I want? Well, there's a really useful file called `molecule.yml` that allows you to configure what platforms, verifiers, drivers and linters you want to use:
+
+```
+---
+dependency:
+  name: galaxy
+driver:
+  name: docker
+lint:
+  name: yamllint
+platforms:
+  - name: instance
+    image: centos:7
+provisioner:
+  name: ansible
+  lint:
+    name: ansible-lint
+verifier:
+  name: testinfra
+  lint:
+    name: flake8
+```
+
+  8. Now the Centos:7 image has been pulled in, let's apply the Ansible role to a new container instantiated from that newly created image (Note: Molecule has a neat feature that will create a playbook that calls the role, so you don't have to worry about creating a testing play separately):
+
+```
 
