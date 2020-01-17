@@ -334,12 +334,12 @@ Skipping, cleanup playbook not configured.
 --> Pruning extra files from scenario ephemeral directory
 ```
 
-I think this is quite useful because (in my mind at least) it simplifies the CI/CD process a fair bit. A typical CI/CD job would involve lining up multiple validation jobs one after the other (i.e. lint -> unit tests -> integration test etc.) which can get lengthy depending on what you are doing. With this method, you only have to call `molecule test` tp execute the majority of code tests you may want to run against your Ansible role. It takes some of the testing logic required in a pipeline and centralises it in a structured, well defined way.
+I think this is quite useful because (in my mind at least) it simplifies the CI/CD process a fair bit. A typical CI/CD job would involve lining up multiple validation jobs one after the other (i.e. lint -> unit tests -> integration test etc.) which can get lengthy depending on what you are doing. With this method, you only have to call `molecule test` to execute the majority of code tests you may want to run against your Ansible role. It takes some of the testing logic required in a pipeline and centralises it in a structured, well defined way.
 
 
 ## Tests
 
-The Molecule framework utilises the term "verifier" for compliance checks. Software such as Inspec, Goss and Testinfra are classed as verifier, and by default Testinfra isthe one used. Let's create a Testinfra script that will check the UID of the file we copied in is actually 5555; first, `cd roles/simple_ansible_role/molecule/default/tests`, create a new file called `test_file_uid.py`and then populate it with the following:
+The Molecule framework utilises the term "verifier" for compliance checks. Software such as Inspec, Goss and Testinfra are classed as verifiers, and, by default, Testinfra is the one used. Let's create a Testinfra script that will check the UID of the file we copied in is correct; first, `cd roles/simple_ansible_role/molecule/default/tests`, create a new file called `test_file_uid.py`and then populate it with the following:
 
 ```
 import os
