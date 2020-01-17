@@ -15,7 +15,7 @@ You should have internet access, have the ability to pull down packages using pi
 ## Proof of Concept instructions
 By following the steps outlined below, you should be able to complete an end to end test of a simple Ansible role. 
 
-  1. To get everything installed, follow [these](https://molecule.readthedocs.io/en/stable/installation.html#install) instructions from molecules' official readthedocs site.
+  1. To get everything installed, follow [these](https://molecule.readthedocs.io/en/stable/installation.html#install) instructions from Molecules' official readthedocs site.
 
   2. We create a virtual environment that will contain all of Molecules' dependencies and then activate it. If for some reason you don't have virtualenv installed on your Centos box, you can run `sudo yum install python-virtualenv`. For this exercise we will use /opt for the virtualenv location and "molecule" for its name, but you can use whatever you prefer:
 
@@ -26,12 +26,14 @@ $ . molecule/bin/activate
 ```
 	
 
-  3. We can now actually install the Molecule dependencies using pip:
+  3. We can now actually install the Molecule dependencies using pip. Notice that the second pip install actually installs Docker into the virtualenv; for now, we will be using Docker to test our Ansible code:
 
 ```
-$ pip install molecule
-$ pip install 'molecule[docker]'
+(molecule) pip install molecule
+(molecule) pip install 'molecule[docker]'
 ```
-     Notice that the second pip install actually installs Docker into the virtualenv; for now, we will be using Docker to test our Ansible code against.
 
-  4. 
+  4. For this stage we will need an actual Ansible role. For convenience, we have one already prepared. Assuming you have cloned this repository and you are in its root directory, if you list the contents of `simple_ansible_role` you should see the following:
+
+```
+(molecule) 
