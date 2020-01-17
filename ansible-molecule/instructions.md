@@ -179,7 +179,62 @@ verifier:
     name: flake8
 ```
 
-  8. Now the Centos:7 image has been pulled in, let's apply the Ansible role to a new container instantiated from that newly created image (Note: Molecule has a neat feature that will create a playbook that calls the role, so you don't have to worry about creating a testing play separately):
+  8. Now the Centos:7 image has been pulled in, let's apply the Ansible role to a new container instantiated from that newly created image via `molecule converge` (Note: Molecule has a neat feature that will create a playbook that calls the role, so you don't have to worry about creating a testing play separately):
+
+```
+(molecule) [root@testserver simple_ansible_role]# molecule converge
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+--> Test matrix
+    
+└── default
+    ├── dependency
+    ├── create
+    ├── prepare
+    └── converge
+    
+--> Scenario: 'default'
+--> Action: 'dependency'
+Skipping, missing the requirements file.
+--> Scenario: 'default'
+--> Action: 'create'
+Skipping, instances already created.
+--> Scenario: 'default'
+--> Action: 'prepare'
+Skipping, prepare playbook not configured.
+--> Scenario: 'default'
+--> Action: 'converge'
+    
+    PLAY [Converge] ****************************************************************
+    
+    TASK [Gathering Facts] *********************************************************
+    ok: [instance]
+    
+    TASK [simple_ansible_role : Copy a file with some cool dialogue in it to /tmp] ***
+    ok: [instance]
+    
+    PLAY RECAP *********************************************************************
+    instance                   : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```
+
+And that's it, we have lift off! We can check that the file has indeed been copied within the container by leveraging a nice wrapper function courtesy of molecule that allows us to go into the container itself:
+
+```
+(molecule) [root@testserver simple_ansible_role]# molecule login
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+[root@instance /]# cat /tmp/witcher_lines.txt 
+Geralt: "Hmmmmmmmmmmmm...Molecule looks pretty good..."
+
+[root@instance /]# ll /tmp/
+total 8
+-rwx------. 1 root   root   836 Oct  1 01:16 ks-script-56tHfe
+-rwxrwxr-x. 1 geralt geralt  56 Jan 17 12:41 witcher_lines.txt
+-rw-------. 1 root   root     0 Oct  1 01:15 yum.log
+
+[root@instance /]# id geralt
+uid=55555(geralt) gid=55555(geralt) groups=55555(geralt)
 
 ```
 
+That looks like what we hoped it would be. We can improve on this by adding some tests and using TestInfra's capabilities.
