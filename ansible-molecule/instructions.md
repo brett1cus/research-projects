@@ -237,4 +237,97 @@ uid=55555(geralt) gid=55555(geralt) groups=55555(geralt)
 
 ```
 
-That looks like what we hoped it would be. We can improve on this by adding some tests and using TestInfra's capabilities.
+That looks like what we hoped it would be. The below sections demonstrate how we can improve on this process by adding some linting and tests.
+
+
+## Linting
+
+Molecule gives the user complete control over what linter to use and how it is used. The default linter is `yamllint` and it is set to check all paths in a given role. For example, let's say that when we are editing tasks/main.yml we accidently add a few extra spaces to a line (something that is generally picked up by yaml linters). After we edited the file we can run `molecule lint` to see if yamllint picks up any bad habits:
+ 
+```
+(molecule) [root@testserver simple_ansible_role]# molecule lint
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+--> Test matrix
+    
+└── default
+    └── lint
+    
+--> Scenario: 'default'
+--> Action: 'lint'
+--> Executing Yamllint on files found in /opt/research-projects/ansible-molecule/roles/simple_ansible_role/...
+Lint completed successfully.
+--> Executing Flake8 on files found in /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/tests/...
+Lint completed successfully.
+--> Executing Ansible Lint on /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/playbook.yml...
+    [201] Trailing whitespace
+    tasks/main.yml:5
+        src: witcher_lines.txt    
+```
+
+As you can see, this picked up the deviant spaces quite nicely. Not exactly ground-breaking, granted, however it _is_ nice that we can check all yaml files in a role at once. More importantly, if you run an end to end test using `molecule test`, the linting will be picked up and the entire test fail:
+
+```
+(molecule) [root@testserver simple_ansible_role]# molecule test
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+--> Test matrix
+    
+└── default
+    ├── lint
+    ├── dependency
+    ├── cleanup
+    ├── destroy
+    ├── syntax
+    ├── create
+    ├── prepare
+    ├── converge
+    ├── idempotence
+    ├── side_effect
+    ├── verify
+    ├── cleanup
+    └── destroy
+    
+--> Scenario: 'default'
+--> Action: 'lint'
+--> Executing Yamllint on files found in /opt/research-projects/ansible-molecule/roles/simple_ansible_role/...
+Lint completed successfully.
+--> Executing Flake8 on files found in /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/tests/...
+Lint completed successfully.
+--> Executing Ansible Lint on /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/playbook.yml...
+    [201] Trailing whitespace
+    tasks/main.yml:5
+        src: witcher_lines.txt    
+    
+An error occurred during the test sequence action: 'lint'. Cleaning up.
+--> Scenario: 'default'
+--> Action: 'cleanup'
+Skipping, cleanup playbook not configured.
+--> Scenario: 'default'
+--> Action: 'destroy'
+--> Sanity checks: 'docker'
+    
+    PLAY [Destroy] *****************************************************************
+    
+    TASK [Destroy molecule instance(s)] ********************************************
+    changed: [localhost] => (item=instance)
+    
+    TASK [Wait for instance(s) deletion to complete] *******************************
+    ok: [localhost] => (item=None)
+    ok: [localhost]
+    
+    TASK [Delete docker network(s)] ************************************************
+    
+    PLAY RECAP *********************************************************************
+    localhost                  : ok=2    changed=1    unreachable=0    failed=0    skipped=1    rescued=0    ignored=0
+    
+--> Pruning extra files from scenario ephemeral directory
+```
+
+I think this is quite useful because (in my ind at least) it simplifies the CI/CD process a fair bit. A typical CI/CD job would involve lining up multiple validation jobs one after the other (i.e. lint -> unit tests -> integration test etc.) which can get lengthy depending on what you are doing. With this method, you only have to call `molecule test` tp execute the majority of code tests you may want to run against your Ansible role. It takes some of the testing logic required in a pipeline and centralises it in a structured, well defined way.
+
+
+## Tests
+
+
+
