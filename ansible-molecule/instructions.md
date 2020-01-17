@@ -265,7 +265,7 @@ Lint completed successfully.
         src: witcher_lines.txt    
 ```
 
-As you can see, this picked up the deviant spaces quite nicely. Not exactly ground-breaking, granted, however it _is_ nice that we can check all yaml files in a role at once. More importantly, if you run an end to end test using `molecule test`, the linting will be picked up and the entire test fail:
+As you can see, this picked up the deviant spaces quite nicely. Not exactly ground-breaking, granted, however it _is_ nice that we can check all yaml files in a role at once. More importantly, if you run an end to end test using `molecule test`, the annoying spaces will be picked up and (by default) have the entire test fail:
 
 ```
 (molecule) [root@testserver simple_ansible_role]# molecule test
@@ -324,10 +324,99 @@ Skipping, cleanup playbook not configured.
 --> Pruning extra files from scenario ephemeral directory
 ```
 
-I think this is quite useful because (in my ind at least) it simplifies the CI/CD process a fair bit. A typical CI/CD job would involve lining up multiple validation jobs one after the other (i.e. lint -> unit tests -> integration test etc.) which can get lengthy depending on what you are doing. With this method, you only have to call `molecule test` tp execute the majority of code tests you may want to run against your Ansible role. It takes some of the testing logic required in a pipeline and centralises it in a structured, well defined way.
+I think this is quite useful because (in my mind at least) it simplifies the CI/CD process a fair bit. A typical CI/CD job would involve lining up multiple validation jobs one after the other (i.e. lint -> unit tests -> integration test etc.) which can get lengthy depending on what you are doing. With this method, you only have to call `molecule test` tp execute the majority of code tests you may want to run against your Ansible role. It takes some of the testing logic required in a pipeline and centralises it in a structured, well defined way.
 
 
 ## Tests
 
+The Molecule framework utilises the term "verifier" for compliance checks. Software such as Inspec, Goss and Testinfra are classed as verifier, and by default Testinfra isthe one used. Let's create a Testinfra script that will check the UID of the file we copied in is actually 5555; first, `cd roles/simple_ansible_role/molecule/default/tests`, create a new file called `test_file_uid.py`and then populate it with the following:
+
+```
+import os
+import pytest
+import testinfra.utils.ansible_runner
+
+testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
+    os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
+
+def test_uid(host):
+    f = host.file("/tmp/witcher_lines.txt")
+    assert f.uid == 555551
+```
 
 
+Change back the root directory of simple_ansible_role and run `molecule verify` to run all of the Testinfra scripts in the tests directory. With any luck, you should see something like this:
+
+```
+(molecule) [root@testserver simple_ansible_role]# molecule verify
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+--> Test matrix
+    
+└── default
+    └── verify
+    
+--> Scenario: 'default'
+--> Action: 'verify'
+--> Executing Testinfra tests found in /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/tests/...
+/opt/molecule/lib/python2.7/site-packages/testinfra/__init__.py:32: TestinfraDeprecationWarning: DEPRECATION: testinfra python2 support is unmaintained, please upgrade to python3
+  stacklevel=1)
+    ============================= test session starts ==============================
+    platform linux2 -- Python 2.7.5, pytest-4.6.9, py-1.8.1, pluggy-0.13.1
+    rootdir: /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default
+    plugins: testinfra-3.4.0
+collected 2 items                                                              
+    
+    tests/test_default.py .                                                  [ 50%]
+    tests/test_file_uid.py F                                                 [100%]
+    
+    =================================== FAILURES ===================================
+    _________________________ test_uid[ansible://instance] _________________________
+    
+    host = <testinfra.host.Host object at 0x7f272425c3d0>
+    
+        def test_uid(host):
+            f = host.file("/tmp/witcher_lines.txt")
+    >       assert f.uid == 555551
+    E       assert 55555 == 555551
+    E        +  where 55555 = <file /tmp/witcher_lines.txt>.uid
+    
+    tests/test_file_uid.py:10: AssertionError
+    ====================== 1 failed, 1 passed in 5.64 seconds ======================
+```
+
+Which is exactly what we want! If you can remember waaay back when we configured the Dockerfile.j2, we actually set geralt's id to 55555, not 555551. Open `test_file_uid.py`, fix that mistake and re-run `molecule verify` again:
+
+```
+(molecule) [root@testserver simple_ansible_role]# molecule verify
+--> Validating schema /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/molecule.yml.
+Validation completed successfully.
+--> Test matrix
+    
+└── default
+    └── verify
+    
+--> Scenario: 'default'
+--> Action: 'verify'
+--> Executing Testinfra tests found in /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default/tests/...
+/opt/molecule/lib/python2.7/site-packages/testinfra/__init__.py:32: TestinfraDeprecationWarning: DEPRECATION: testinfra python2 support is unmaintained, please upgrade to python3
+  stacklevel=1)
+    ============================= test session starts ==============================
+    platform linux2 -- Python 2.7.5, pytest-4.6.9, py-1.8.1, pluggy-0.13.1
+    rootdir: /opt/research-projects/ansible-molecule/roles/simple_ansible_role/molecule/default
+    plugins: testinfra-3.4.0
+collected 2 items                                                              
+    
+    tests/test_default.py .                                                  [ 50%]
+    tests/test_file_uid.py .                                                 [100%]
+    
+    =========================== 2 passed in 5.58 seconds ===========================
+Verifier completed successfully.
+```
+
+Much better :)
+
+
+## Conclusion
+
+I think it's quite clear to see why Molecule is gaining so much traction in the Ansible world: the ability to swap out key testing components depending on requirements/perferences in a single, well thought-out structure is undeniably _very_ useful. Coupled with the fact that you can keep all of the dependencies safely tucked away in a virtualenv makes it very straightforward to replicate the entire testing methodology. Moreover, if you were inclined to, it is possible to replicate cluster behaviour as you can spin up multiple container instances at once, so the scope of usage is huge. I'm hoping to add more experiments as time goes on, however, I feel the above it a reasonable introduction to the world of Molecule. Enjoy and have fun.
