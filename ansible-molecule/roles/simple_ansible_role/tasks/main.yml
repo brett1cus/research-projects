@@ -1,0 +1,9 @@
+---
+
+- name: Copy a file with hello world in it to /tmp
+  copy:
+    src: witcher_lines.txt
+    dest: /tmp
+    owner: geralt
+    group: geralt
+    mode: 0775
